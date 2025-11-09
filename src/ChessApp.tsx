@@ -2,6 +2,20 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Chess } from "chess.js";
 import type { Square, Move, PieceSymbol, Color } from "chess.js";
 
+// Import chess piece images
+import wP from './assets/pieces/wP.svg';
+import wR from './assets/pieces/wR.svg';
+import wN from './assets/pieces/wN.svg';
+import wB from './assets/pieces/wB.svg';
+import wQ from './assets/pieces/wQ.svg';
+import wK from './assets/pieces/wK.svg';
+import bP from './assets/pieces/bP.svg';
+import bR from './assets/pieces/bR.svg';
+import bN from './assets/pieces/bN.svg';
+import bB from './assets/pieces/bB.svg';
+import bQ from './assets/pieces/bQ.svg';
+import bK from './assets/pieces/bK.svg';
+
 interface ChessPiece {
   type: PieceSymbol;
   color: Color;
@@ -12,26 +26,25 @@ type PieceMapKey = 'p' | 'r' | 'n' | 'b' | 'q' | 'k' | 'P' | 'R' | 'N' | 'B' | '
 const files: string[] = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const ranks: string[] = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
-const unicodePiece = (p: ChessPiece | null): string => {
-  if (!p) return "";
+const pieceImages: Record<PieceMapKey, string> = {
+  p: bP,
+  r: bR,
+  n: bN,
+  b: bB,
+  q: bQ,
+  k: bK,
+  P: wP,
+  R: wR,
+  N: wN,
+  B: wB,
+  Q: wQ,
+  K: wK,
+};
 
-  const map: Record<PieceMapKey, string> = {
-    p: "♟",
-    r: "♜",
-    n: "♞",
-    b: "♝",
-    q: "♛",
-    k: "♚",
-    P: "♙",
-    R: "♖",
-    N: "♘",
-    B: "♗",
-    Q: "♕",
-    K: "♔",
-  };
-
+const getPieceImage = (p: ChessPiece | null): string | null => {
+  if (!p) return null;
   const key = (p.color === "w" ? p.type.toUpperCase() : p.type) as PieceMapKey;
-  return map[key] || "";
+  return pieceImages[key] || null;
 };
 
 export default function ChessApp() {
@@ -110,6 +123,7 @@ export default function ChessApp() {
     const isDark = (rankIdx + fileIdx) % 2 === 1;
     const isSelected = selectedSquare === sq;
     const isLegal = legalMoves.includes(sq);
+    const pieceImage = getPieceImage(piece);
 
     return (
       <button
@@ -126,12 +140,22 @@ export default function ChessApp() {
           justifyContent: 'center',
           position: 'relative',
           boxShadow: isSelected ? 'inset 0 0 0 4px #fbbf24' : 'none',
+          padding: '4px',
         }}
         aria-label={sq}
       >
-        <span style={{ fontSize: '48px', lineHeight: 1, userSelect: 'none' }}>
-          {piece ? unicodePiece(piece) : ""}
-        </span>
+        {pieceImage && (
+          <img
+            src={pieceImage}
+            alt={piece ? `${piece.color} ${piece.type}` : ''}
+            style={{
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              userSelect: 'none'
+            }}
+          />
+        )}
         {isLegal && !piece && (
           <div style={{
             position: 'absolute',
@@ -378,18 +402,22 @@ export default function ChessApp() {
             </h3>
             <div className="flex gap-4">
               {[
-                { piece: "q", white: "♕", black: "♛", name: "Queen" },
-                { piece: "r", white: "♖", black: "♜", name: "Rook" },
-                { piece: "b", white: "♗", black: "♝", name: "Bishop" },
-                { piece: "n", white: "♘", black: "♞", name: "Knight" },
-              ].map(({ piece, white, black, name }) => (
+                { piece: "q", whiteImg: wQ, blackImg: bQ, name: "Queen" },
+                { piece: "r", whiteImg: wR, blackImg: bR, name: "Rook" },
+                { piece: "b", whiteImg: wB, blackImg: bB, name: "Bishop" },
+                { piece: "n", whiteImg: wN, blackImg: bN, name: "Knight" },
+              ].map(({ piece, whiteImg, blackImg, name }) => (
                 <button
                   key={piece}
                   onClick={() => handlePromotion(piece as "q" | "r" | "b" | "n")}
-                  className="w-20 h-20 text-5xl bg-slate-600 hover:bg-slate-500 border-2 border-slate-500 rounded-lg transition-colors flex items-center justify-center"
+                  className="w-20 h-20 bg-slate-600 hover:bg-slate-500 border-2 border-slate-500 rounded-lg transition-colors flex items-center justify-center p-2"
                   title={name}
                 >
-                  {game.turn() === "w" ? white : black}
+                  <img
+                    src={game.turn() === "w" ? whiteImg : blackImg}
+                    alt={name}
+                    style={{ width: '100%', height: '100%' }}
+                  />
                 </button>
               ))}
             </div>
