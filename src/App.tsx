@@ -1,4 +1,4 @@
-import ChessApp from './ChessApp'
+import ChessApp from './components/ChessApp'
 import './App.css'
 
 function App() {
