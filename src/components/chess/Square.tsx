@@ -25,8 +25,8 @@ export const Square: React.FC<SquareProps> = ({
     <button
       onClick={onClick}
       style={{
-        width: '64px',
-        height: '64px',
+        width: '80px',
+        height: '80px',
         backgroundColor: isDark ? '#b58863' : '#f0d9b5',
         border: 'none',
         cursor: 'pointer',
@@ -35,7 +35,7 @@ export const Square: React.FC<SquareProps> = ({
         justifyContent: 'center',
         position: 'relative',
         boxShadow: isSelected ? 'inset 0 0 0 4px #fbbf24' : 'none',
-        padding: '4px',
+        padding: '6px',
       }}
       aria-label={square}
     >
@@ -55,8 +55,8 @@ export const Square: React.FC<SquareProps> = ({
         <div
           style={{
             position: 'absolute',
-            width: '16px',
-            height: '16px',
+            width: '20px',
+            height: '20px',
             backgroundColor: 'rgba(0, 0, 0, 0.3)',
             borderRadius: '50%',
           }}
@@ -66,7 +66,7 @@ export const Square: React.FC<SquareProps> = ({
         <div
           style={{
             position: 'absolute',
-            inset: '4px',
+            inset: '6px',
             border: '4px solid rgba(0, 0, 0, 0.3)',
             borderRadius: '50%',
           }}

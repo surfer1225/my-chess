@@ -32,22 +32,22 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
         <div
           style={{
             position: 'absolute',
-            left: '-28px',
+            left: '-32px',
             top: '4px',
             display: 'flex',
             flexDirection: 'column',
           }}
-          className="text-slate-400 text-sm font-medium"
+          className="text-slate-400 text-base font-semibold"
         >
           {displayRanks.map((rank) => (
             <div
               key={rank}
               style={{
-                height: '64px',
+                height: '80px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-end',
-                width: '20px',
+                width: '24px',
               }}
             >
               {rank}
@@ -65,8 +65,8 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(8, 64px)',
-              gridTemplateRows: 'repeat(8, 64px)',
+              gridTemplateColumns: 'repeat(8, 80px)',
+              gridTemplateRows: 'repeat(8, 80px)',
             }}
           >
             {board.map((row, rankIdx) =>
@@ -102,10 +102,10 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
           flexDirection: 'row',
           marginTop: '8px',
         }}
-        className="text-slate-400 text-sm font-medium"
+        className="text-slate-400 text-base font-semibold"
       >
         {displayFiles.map((file) => (
-          <div key={file} style={{ width: '64px', textAlign: 'center' }}>
+          <div key={file} style={{ width: '80px', textAlign: 'center' }}>
             {file}
           </div>
         ))}
