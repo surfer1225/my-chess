@@ -9,6 +9,7 @@ interface SquareProps {
   isSelected: boolean;
   isLegal: boolean;
   onClick: () => void;
+  squareSize: number;
 }
 
 export const Square: React.FC<SquareProps> = ({
@@ -18,6 +19,7 @@ export const Square: React.FC<SquareProps> = ({
   isSelected,
   isLegal,
   onClick,
+  squareSize,
 }) => {
   const pieceImage = getPieceImage(piece);
 
@@ -25,8 +27,8 @@ export const Square: React.FC<SquareProps> = ({
     <button
       onClick={onClick}
       style={{
-        width: '80px',
-        height: '80px',
+        width: `${squareSize}px`,
+        height: `${squareSize}px`,
         backgroundColor: isDark ? '#b58863' : '#f0d9b5',
         border: 'none',
         cursor: 'pointer',
@@ -34,8 +36,8 @@ export const Square: React.FC<SquareProps> = ({
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        boxShadow: isSelected ? 'inset 0 0 0 4px #fbbf24' : 'none',
-        padding: '6px',
+        boxShadow: isSelected ? `inset 0 0 0 ${Math.max(3, squareSize * 0.04)}px #fbbf24` : 'none',
+        padding: `${squareSize * 0.07}px`,
       }}
       aria-label={square}
     >
@@ -55,8 +57,8 @@ export const Square: React.FC<SquareProps> = ({
         <div
           style={{
             position: 'absolute',
-            width: '20px',
-            height: '20px',
+            width: '22px',
+            height: '22px',
             backgroundColor: 'rgba(0, 0, 0, 0.3)',
             borderRadius: '50%',
           }}

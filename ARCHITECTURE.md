@@ -114,20 +114,32 @@ All components use TypeScript interfaces:
 
 ## UI/UX Features
 
+### Responsive Design
+- **Dynamic Square Sizing**: Board scales based on viewport size
+  - Mobile (<768px): 60px max squares
+  - Tablet/Small Desktop (768-1400px): 80px max squares
+  - Large Desktop (>1400px): up to 100px squares
+- **Adaptive Layout**:
+  - Mobile: Stacked vertical layout
+  - Desktop: Side-by-side horizontal layout
+- **Responsive Typography**: Font sizes scale with board size
+- **Window Resize Handling**: Real-time adaptation to viewport changes
+
 ### Board Design
-- **Square Size**: 80×80px for better visibility
+- **Square Size**: Responsive (60-100px based on screen size)
 - **Colors**: Professional chess.com/Lichess style
   - Light squares: `#f0d9b5`
   - Dark squares: `#b58863`
-- **Coordinates**: Larger, bolder rank/file labels (text-base, font-semibold)
-- **Selection Indicator**: 4px yellow inset shadow
-- **Legal Move Indicators**: 
-  - Empty squares: 20px circle
-  - Capture moves: 4px border around piece
+- **Coordinates**: Dynamic sizing (scales with board)
+- **Selection Indicator**: Dynamic width yellow inset shadow
+- **Legal Move Indicators**:
+  - Empty squares: Scaled circle indicator
+  - Capture moves: Scaled border around piece
+- **Wood Background**: Gradient wood texture across entire page
 
 ### Move History Panel (Right Side)
 - **Modern Design**: 400px width with gradient background and glassmorphism effect
-- **Elegant Header**: 
+- **Elegant Header**:
   - Gradient icon badge (indigo to purple)
   - Clear typography with tracking
   - Live move counter with gradient background and border
@@ -137,7 +149,7 @@ All components use TypeScript interfaces:
   - Numbered badges with gradient styling
   - Each move in separate card with hover effects
   - Semi-transparent placeholder for incomplete pairs
-- **Empty State**: 
+- **Empty State**:
   - Large centered icon with background circle
   - Encouraging message for new games
 - **Interactive Elements**:

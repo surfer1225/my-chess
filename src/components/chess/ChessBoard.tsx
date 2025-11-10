@@ -9,6 +9,7 @@ interface ChessBoardProps {
   flip: boolean;
   squareName: (rankIdx: number, fileIdx: number) => SquareType;
   onSquareClick: (rankIdx: number, fileIdx: number) => void;
+  squareSize: number;
 }
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -21,9 +22,12 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   flip,
   squareName,
   onSquareClick,
+  squareSize,
 }) => {
   const displayFiles = flip ? [...files].reverse() : files;
   const displayRanks = flip ? [...ranks].reverse() : ranks;
+  const fontSize = Math.max(14, squareSize * 0.18);
+  const coordOffset = squareSize * 0.4;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -32,22 +36,24 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
         <div
           style={{
             position: 'absolute',
-            left: '-32px',
+            left: `-${coordOffset}px`,
             top: '4px',
             display: 'flex',
             flexDirection: 'column',
+            fontSize: `${fontSize}px`,
+            fontWeight: 'bold',
+            color: '#cbd5e1',
           }}
-          className="text-slate-400 text-base font-semibold"
         >
           {displayRanks.map((rank) => (
             <div
               key={rank}
               style={{
-                height: '80px',
+                height: `${squareSize}px`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-end',
-                width: '24px',
+                width: `${coordOffset * 0.7}px`,
               }}
             >
               {rank}
@@ -65,8 +71,8 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(8, 80px)',
-              gridTemplateRows: 'repeat(8, 80px)',
+              gridTemplateColumns: `repeat(8, ${squareSize}px)`,
+              gridTemplateRows: `repeat(8, ${squareSize}px)`,
             }}
           >
             {board.map((row, rankIdx) =>
@@ -87,6 +93,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
                     isSelected={isSelected}
                     isLegal={isLegal}
                     onClick={() => onSquareClick(rIdx, fIdx)}
+                    squareSize={squareSize}
                   />
                 );
               })
@@ -100,12 +107,14 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
         style={{
           display: 'flex',
           flexDirection: 'row',
-          marginTop: '8px',
+          marginTop: '10px',
+          fontSize: `${fontSize}px`,
+          fontWeight: 'bold',
+          color: '#cbd5e1',
         }}
-        className="text-slate-400 text-base font-semibold"
       >
         {displayFiles.map((file) => (
-          <div key={file} style={{ width: '80px', textAlign: 'center' }}>
+          <div key={file} style={{ width: `${squareSize}px`, textAlign: 'center' }}>
             {file}
           </div>
         ))}
