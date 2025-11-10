@@ -3,16 +3,20 @@ import type { Move } from "../../types/chess.types";
 
 interface MoveHistoryProps {
   history: Move[];
-  onCopyPGN: () => void;
-  onLoadFEN: () => void;
   squareSize: number;
+  onFlip: () => void;
+  onUndo: () => void;
+  onReset: () => void;
+  canUndo: boolean;
 }
 
 export const MoveHistory: React.FC<MoveHistoryProps> = ({
   history,
-  onCopyPGN,
-  onLoadFEN,
   squareSize,
+  onFlip,
+  onUndo,
+  onReset,
+  canUndo,
 }) => {
   const movePairs = history.reduce((acc: Move[][], move, i) => {
     if (i % 2 === 0) {
@@ -29,12 +33,21 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
 
   return (
     <div
-      className="bg-slate-800/80 rounded-xl shadow-2xl backdrop-blur-sm border border-slate-700/50"
-      style={{ width: `${panelWidth}px`, height: 'fit-content', maxWidth: '100%', padding: squareSize < 70 ? '12px' : '16px' }}
+      style={{
+        width: `${panelWidth}px`,
+        height: 'fit-content',
+        maxWidth: '100%',
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        borderRadius: '12px',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(71, 85, 105, 0.3)',
+        padding: squareSize < 70 ? '12px' : '16px'
+      }}
     >
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-600/50" style={{ marginBottom: '12px' }}>
-        <h2 className={`font-bold text-white ${squareSize < 70 ? 'text-base' : 'text-lg'}`}>Moves</h2>
+        <h2 style={{ fontWeight: 'bold', color: '#ffffff', fontSize: squareSize < 70 ? '16px' : '18px' }}>Moves</h2>
       </div>
 
       {/* Moves Table */}
@@ -48,8 +61,8 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
         }}
       >
         {history.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400">
-            <span className="text-sm">No moves yet</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <span style={{ fontSize: '14px', color: '#ffffff' }}>No moves yet</span>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -61,7 +74,7 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
                 <th style={{
                   padding: '8px 4px',
                   textAlign: 'center',
-                  color: '#cbd5e1',
+                  color: '#ffffff',
                   fontWeight: '600',
                   fontSize: '13px',
                   width: '50px'
@@ -69,14 +82,14 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
                 <th style={{
                   padding: '8px 12px',
                   textAlign: 'left',
-                  color: '#cbd5e1',
+                  color: '#ffffff',
                   fontWeight: '600',
                   fontSize: '13px'
                 }}>White</th>
                 <th style={{
                   padding: '8px 12px',
                   textAlign: 'left',
-                  color: '#cbd5e1',
+                  color: '#ffffff',
                   fontWeight: '600',
                   fontSize: '13px'
                 }}>Black</th>
@@ -95,7 +108,7 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
                   <td style={{
                     padding: '8px 4px',
                     textAlign: 'center',
-                    color: '#94a3b8',
+                    color: '#ffffff',
                     fontWeight: '600',
                     fontSize: '13px'
                   }}>
@@ -103,7 +116,7 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
                   </td>
                   <td style={{
                     padding: '8px 12px',
-                    color: '#f1f5f9',
+                    color: '#ffffff',
                     fontFamily: 'monospace',
                     fontSize: '14px',
                     fontWeight: '500'
@@ -112,7 +125,7 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
                   </td>
                   <td style={{
                     padding: '8px 12px',
-                    color: '#f1f5f9',
+                    color: '#ffffff',
                     fontFamily: 'monospace',
                     fontSize: '14px',
                     fontWeight: '500'
@@ -126,21 +139,90 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
         )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="space-y-2">
+      {/* Game Controls - Icon Button Group */}
+      <div style={{
+        display: 'flex',
+        gap: '0',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(51, 65, 85, 0.5)',
+        borderRadius: '8px',
+        padding: '4px',
+        border: '1px solid rgba(71, 85, 105, 0.5)'
+      }}>
         <button
-          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors font-medium text-sm"
-          onClick={onCopyPGN}
+          style={{
+            padding: '10px 16px',
+            backgroundColor: 'transparent',
+            border: 'none',
+            color: '#ffffff',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          className="hover:bg-slate-600/60"
+          onClick={onFlip}
+          title="Flip Board"
         >
-          Copy PGN
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="17 1 21 5 17 9"></polyline>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+            <polyline points="7 23 3 19 7 15"></polyline>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+          </svg>
         </button>
+
         <button
-          className="w-full px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors font-medium text-sm"
-          onClick={onLoadFEN}
+          style={{
+            padding: '10px 16px',
+            backgroundColor: 'transparent',
+            border: 'none',
+            color: canUndo ? '#ffffff' : 'rgba(255, 255, 255, 0.3)',
+            cursor: canUndo ? 'pointer' : 'not-allowed',
+            transition: 'background-color 0.2s',
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          className={canUndo ? 'hover:bg-slate-600/60' : ''}
+          onClick={onUndo}
+          disabled={!canUndo}
+          title="Undo Move"
         >
-          Load FEN
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 7v6h6"></path>
+            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+          </svg>
+        </button>
+
+        <button
+          style={{
+            padding: '10px 16px',
+            backgroundColor: 'transparent',
+            border: 'none',
+            color: '#ffffff',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          className="hover:bg-slate-600/60"
+          onClick={onReset}
+          title="New Game"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
         </button>
       </div>
+
     </div>
   );
 };

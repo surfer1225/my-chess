@@ -1,7 +1,6 @@
 import React from "react";
 import { useChessGame } from "../hooks/useChessGame";
 import { ChessBoard } from "./chess/ChessBoard";
-import { GameControls } from "./chess/GameControls";
 import { GameStatus } from "./chess/GameStatus";
 import { MoveHistory } from "./chess/MoveHistory";
 import { PromotionDialog } from "./chess/PromotionDialog";
@@ -22,24 +21,7 @@ export default function ChessApp() {
     undo,
     setFlip,
     handlePromotion,
-    exportPGN,
-    importFEN,
   } = useChessGame();
-
-  const handleCopyPGN = (): void => {
-    const pgn = exportPGN();
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(pgn);
-      alert("PGN copied to clipboard");
-    } else {
-      alert(`PGN: ${pgn}`);
-    }
-  };
-
-  const handleLoadFEN = (): void => {
-    const fen = prompt("Paste FEN to load:");
-    if (fen) importFEN(fen);
-  };
 
   // Calculate responsive square size - maximize board size
   const calculateSquareSize = () => {
@@ -119,24 +101,16 @@ export default function ChessApp() {
             onSquareClick={onSquareClick}
             squareSize={squareSize}
           />
-
-          {/* Controls at Bottom */}
-          <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'center' }}>
-            <GameControls
-              onFlip={() => setFlip((f) => !f)}
-              onUndo={undo}
-              onReset={reset}
-              canUndo={history.length > 0}
-            />
-          </div>
         </div>
 
         {/* Right Side - Move History */}
         <MoveHistory
           history={history}
-          onCopyPGN={handleCopyPGN}
-          onLoadFEN={handleLoadFEN}
           squareSize={squareSize}
+          onFlip={() => setFlip((f) => !f)}
+          onUndo={undo}
+          onReset={reset}
+          canUndo={history.length > 0}
         />
       </div>
 

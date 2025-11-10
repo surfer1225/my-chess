@@ -138,35 +138,26 @@ All components use TypeScript interfaces:
 - **Wood Background**: Gradient wood texture across entire page
 
 ### Move History Panel (Right Side)
-- **Modern Design**: 400px width with gradient background and glassmorphism effect
-- **Elegant Header**:
-  - Gradient icon badge (indigo to purple)
-  - Clear typography with tracking
-  - Live move counter with gradient background and border
-- **Move Display**:
-  - 520px scrollable height with custom scrollbar styling
-  - Individual move cards with gradient backgrounds
-  - Numbered badges with gradient styling
-  - Each move in separate card with hover effects
-  - Semi-transparent placeholder for incomplete pairs
-- **Empty State**:
-  - Large centered icon with background circle
-  - Encouraging message for new games
-- **Interactive Elements**:
-  - Smooth hover transitions (200ms duration)
-  - Hover effects on move cards with border animation
-  - Scale transforms on button interactions
+- **Table-Based Design**: Clean tabular layout inspired by chess.com
+- **Header**: Simple "Moves" title with bottom border
+- **Move Table**:
+  - Three columns: # (move number), White, Black
+  - Column headers with dark background
+  - Alternating row colors for readability
+  - Hover effects on rows
+  - Monospace font for move notation
+  - Responsive height based on board size
+  - Custom scrollbar styling
+- **Empty State**: Simple centered message
 - **Action Buttons**:
-  - Vibrant gradient buttons (blue→indigo, emerald→teal)
-  - Icon + text layout
-  - Hover scale effects (scale-[1.02])
-  - Active press effects (scale-[0.98])
-  - Enhanced shadows with color matching
-- **Visual Polish**:
-  - Rounded corners (2xl/xl for depth)
-  - Border accents with transparency
-  - Backdrop blur for modern glassmorphism
-  - Consistent spacing and padding
+  - Copy PGN button (blue)
+  - Load FEN button (green)
+  - Full-width layout
+- **Visual Style**:
+  - Dark background (slate-800/80)
+  - Subtle borders and dividers
+  - Responsive sizing based on board size
+  - Clean, professional appearance
 
 ## Best Practices Implemented
 
