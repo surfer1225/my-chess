@@ -1,5 +1,6 @@
 import { Chess } from "chess.js";
-import type { Move } from "chess.js";
+import type { Move, PieceSymbol } from "chess.js";
+import { getBookMove as getBookMoveFromLib } from "./openingBook";
 
 export type DifficultyLevel = "easy" | "medium" | "hard";
 
@@ -16,6 +17,11 @@ const PIECE_VALUES: { [key: string]: number } = {
   q: 900,
   k: 20000,
 };
+
+// Helper to get piece value safely
+function getPieceValue(piece: PieceSymbol): number {
+  return PIECE_VALUES[piece] || 0;
+}
 
 const POSITION_BONUS = {
   p: [
@@ -80,10 +86,67 @@ const POSITION_BONUS = {
   ],
 };
 
+/**
+ * Get a move from the opening book using the comprehensive external library
+ * Returns null if position not in book
+ */
+function getBookMove(game: Chess): Move | null {
+  const fen = game.fen();
+  const bookMoveStr = getBookMoveFromLib(fen);
+
+  if (bookMoveStr) {
+    const moves = game.moves({ verbose: true });
+    const move = moves.find(m => `${m.from}${m.to}` === bookMoveStr);
+    return move || null;
+  }
+
+  return null;
+}
+
+/**
+ * Move Ordering: Prioritize promising moves for better alpha-beta pruning
+ * MVV-LVA: Most Valuable Victim - Least Valuable Attacker
+ * Optimized version - removed expensive check detection
+ */
+function orderMoves(_game: Chess, moves: Move[]): Move[] {
+  return moves.sort((a, b) => {
+    let scoreA = 0;
+    let scoreB = 0;
+
+    // Prioritize captures (MVV-LVA)
+    if (a.captured) {
+      scoreA += getPieceValue(a.captured) * 10 - getPieceValue(a.piece);
+    }
+    if (b.captured) {
+      scoreB += getPieceValue(b.captured) * 10 - getPieceValue(b.piece);
+    }
+
+    // Prioritize promotions
+    if (a.promotion) scoreA += 800;
+    if (b.promotion) scoreB += 800;
+
+    return scoreB - scoreA;
+  });
+}
+
+/**
+ * Fast Evaluation Function with:
+ * - Material and positional values
+ * - King safety (check penalty)
+ */
 function evaluateBoard(game: Chess, forColor: "w" | "b"): number {
+  // Checkmate and draw detection
+  if (game.isCheckmate()) {
+    return game.turn() === forColor ? -999999 : 999999;
+  }
+  if (game.isDraw() || game.isStalemate() || game.isThreefoldRepetition()) {
+    return 0;
+  }
+
   let score = 0;
   const board = game.board();
 
+  // Material and positional values
   for (let rank = 0; rank < 8; rank++) {
     for (let file = 0; file < 8; file++) {
       const piece = board[rank][file];
@@ -105,58 +168,129 @@ function evaluateBoard(game: Chess, forColor: "w" | "b"): number {
     }
   }
 
+  // King safety: penalize being in check
+  if (game.inCheck()) {
+    const currentTurn = game.turn();
+    score += currentTurn === forColor ? -50 : 50;
+  }
+
   return score;
 }
 
-function minimax(
+/**
+ * Quiescence Search: Search only tactical moves (captures) until position is quiet
+ * Limited depth to prevent excessive branching
+ * Uses negamax perspective (always from current player's view)
+ */
+function quiescence(
+  game: Chess,
+  alpha: number,
+  beta: number,
+  qDepth: number = 0
+): number {
+  // Stand pat: current position evaluation from current player's perspective
+  const currentPlayer = game.turn();
+  const standPat = evaluateBoard(game, currentPlayer);
+
+  // Beta cutoff: position is too good, opponent won't allow this
+  if (standPat >= beta) {
+    return beta;
+  }
+
+  // Update alpha if standing pat is better
+  if (alpha < standPat) {
+    alpha = standPat;
+  }
+
+  // Limit quiescence depth to prevent explosion
+  if (qDepth >= 3) {
+    return alpha;
+  }
+
+  // Only search captures (tactical moves)
+  const allMoves = game.moves({ verbose: true });
+  const captures = allMoves.filter(m => m.captured);
+
+  // Simple ordering: just sort by captured piece value (no need for full orderMoves)
+  captures.sort((a, b) => {
+    const aValue = a.captured ? getPieceValue(a.captured) : 0;
+    const bValue = b.captured ? getPieceValue(b.captured) : 0;
+    return bValue - aValue;
+  });
+
+  for (const move of captures) {
+    game.move(move);
+    const score = -quiescence(game, -beta, -alpha, qDepth + 1);
+    game.undo();
+
+    if (score >= beta) {
+      return beta;
+    }
+    if (score > alpha) {
+      alpha = score;
+    }
+  }
+
+  return alpha;
+}
+
+/**
+ * Negamax algorithm with alpha-beta pruning
+ * Simpler and more correct than separate max/min logic
+ * Always evaluates from the perspective of the player to move
+ */
+function negamax(
   game: Chess,
   depth: number,
   alpha: number,
-  beta: number,
-  maximizingPlayer: boolean,
-  aiColor: "w" | "b"
+  beta: number
 ): number {
+  // At depth 0 or game over, evaluate position
   if (depth === 0 || game.isGameOver()) {
-    return evaluateBoard(game, aiColor);
+    if (game.isGameOver()) {
+      // Checkmate or draw
+      if (game.isCheckmate()) {
+        // If it's our turn and we're checkmated, return worst score
+        return -999999;
+      }
+      // Draw
+      return 0;
+    }
+    // Use quiescence search to avoid horizon effect
+    return quiescence(game, alpha, beta);
   }
 
-  const moves = game.moves({ verbose: true });
+  // Order moves for better alpha-beta pruning
+  const moves = orderMoves(game, game.moves({ verbose: true }));
 
-  if (maximizingPlayer) {
-    let maxEval = -Infinity;
-    for (const move of moves) {
-      game.move(move);
-      const evaluation = minimax(game, depth - 1, alpha, beta, false, aiColor);
-      game.undo();
-      maxEval = Math.max(maxEval, evaluation);
-      alpha = Math.max(alpha, evaluation);
-      if (beta <= alpha) break;
+  let maxScore = -Infinity;
+
+  for (const move of moves) {
+    game.move(move);
+    const score = -negamax(game, depth - 1, -beta, -alpha);
+    game.undo();
+
+    maxScore = Math.max(maxScore, score);
+    alpha = Math.max(alpha, score);
+
+    if (alpha >= beta) {
+      break; // Beta cutoff
     }
-    return maxEval;
-  } else {
-    let minEval = Infinity;
-    for (const move of moves) {
-      game.move(move);
-      const evaluation = minimax(game, depth - 1, alpha, beta, true, aiColor);
-      game.undo();
-      minEval = Math.min(minEval, evaluation);
-      beta = Math.min(beta, evaluation);
-      if (beta <= alpha) break;
-    }
-    return minEval;
   }
+
+  return maxScore;
 }
 
 function getBestMove(game: Chess, depth: number): Move | null {
   const moves = game.moves({ verbose: true });
   if (moves.length === 0) return null;
 
-  const aiColor = game.turn();
   const evaluatedMoves: EvaluatedMove[] = [];
 
   for (const move of moves) {
     game.move(move);
-    const score = minimax(game, depth - 1, -Infinity, Infinity, false, aiColor);
+    // Negamax: negate the score from opponent's perspective
+    const score = -negamax(game, depth - 1, -Infinity, Infinity);
     game.undo();
     evaluatedMoves.push({ move, score });
   }
@@ -166,29 +300,29 @@ function getBestMove(game: Chess, depth: number): Move | null {
   return evaluatedMoves[0].move;
 }
 
-function getRandomMove(game: Chess): Move | null {
-  const moves = game.moves({ verbose: true });
-  if (moves.length === 0) return null;
-  return moves[Math.floor(Math.random() * moves.length)];
-}
-
-function getMediumMove(game: Chess): Move | null {
-  const randomFactor = Math.random();
-  if (randomFactor < 0.3) {
-    return getRandomMove(game);
-  }
-  return getBestMove(game, 2);
-}
-
+/**
+ * Get AI move based on difficulty level
+ * All modes use opening book for strong, instant opening play:
+ * - Easy: depth 1 + quiescence (max 3) + opening book
+ * - Medium: depth 2 + quiescence (max 3) + opening book
+ * - Hard: depth 3 + quiescence (max 3) + opening book
+ */
 export function getAIMove(game: Chess, difficulty: DifficultyLevel): Move | null {
+  // Use opening book for ALL difficulty levels (instant, strong opening play)
+  const bookMove = getBookMove(game);
+  if (bookMove) {
+    return bookMove; // Instant response from book
+  }
+
+  // Fall back to calculated moves when out of book
   switch (difficulty) {
     case "easy":
-      return Math.random() < 0.7 ? getRandomMove(game) : getBestMove(game, 1);
+      return getBestMove(game, 1);
     case "medium":
-      return getMediumMove(game);
+      return getBestMove(game, 2);
     case "hard":
       return getBestMove(game, 3);
     default:
-      return getRandomMove(game);
+      return getBestMove(game, 2);
   }
 }

@@ -8,8 +8,8 @@ import { GameModeSelector } from "./chess/GameModeSelector";
 import type { GameMode, DifficultyLevel } from "../types/chess.types";
 
 export default function ChessApp() {
-  const [gameMode, setGameMode] = React.useState<GameMode>("human-vs-human");
-  const [difficulty, setDifficulty] = React.useState<DifficultyLevel>("medium");
+  const [gameMode, setGameMode] = React.useState<GameMode>("human-vs-bot");
+  const [difficulty, setDifficulty] = React.useState<DifficultyLevel>("hard");
 
   const handleGameModeChange = (mode: GameMode) => {
     setGameMode(mode);
