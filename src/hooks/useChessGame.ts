@@ -1,8 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Chess } from "chess.js";
-import type { Square, Move, ChessPiece, PromotionDialogState, PromotionPiece } from "../types/chess.types";
+import type { Square, Move, ChessPiece, PromotionDialogState, PromotionPiece, GameMode, DifficultyLevel } from "../types/chess.types";
+import { getAIMove } from "../utils/chessAI";
 
-export const useChessGame = () => {
+interface UseChessGameProps {
+  gameMode: GameMode;
+  difficulty: DifficultyLevel;
+}
+
+export const useChessGame = ({ gameMode, difficulty }: UseChessGameProps) => {
   const [game] = useState<Chess>(() => new Chess());
   const [board, setBoard] = useState<(ChessPiece | null)[][]>(game.board());
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
@@ -10,6 +16,8 @@ export const useChessGame = () => {
   const [history, setHistory] = useState<Move[]>([]);
   const [flip, setFlip] = useState<boolean>(false);
   const [promotionDialog, setPromotionDialog] = useState<PromotionDialogState | null>(null);
+  const [isAIThinking, setIsAIThinking] = useState<boolean>(false);
+  const [lastMove, setLastMove] = useState<{ from: Square; to: Square } | null>(null);
 
   useEffect(() => {
     setBoard(game.board());
@@ -54,6 +62,7 @@ export const useChessGame = () => {
           game.move({ from: selectedSquare, to: sq });
           setBoard(game.board());
           setHistory(game.history({ verbose: true }));
+          setLastMove({ from: selectedSquare, to: sq });
           setSelectedSquare(null);
           setLegalMoves([]);
         } catch (error) {
@@ -79,14 +88,23 @@ export const useChessGame = () => {
     setHistory([]);
     setSelectedSquare(null);
     setLegalMoves([]);
+    setLastMove(null);
   };
 
   const undo = (): void => {
     game.undo();
     setBoard(game.board());
-    setHistory(game.history({ verbose: true }));
+    const newHistory = game.history({ verbose: true });
+    setHistory(newHistory);
     setSelectedSquare(null);
     setLegalMoves([]);
+    
+    if (newHistory.length > 0) {
+      const lastHistoryMove = newHistory[newHistory.length - 1];
+      setLastMove({ from: lastHistoryMove.from, to: lastHistoryMove.to });
+    } else {
+      setLastMove(null);
+    }
   };
 
   const handlePromotion = (piece: PromotionPiece): void => {
@@ -122,9 +140,32 @@ export const useChessGame = () => {
     }
   };
 
+  const makeAIMove = useCallback(() => {
+    if (gameMode !== "human-vs-bot" || isAIThinking || game.isGameOver()) return;
+    if (game.turn() !== "b") return;
+
+    setIsAIThinking(true);
+    
+    setTimeout(() => {
+      const aiMove = getAIMove(game, difficulty);
+      if (aiMove) {
+        game.move(aiMove);
+        setBoard(game.board());
+        setHistory(game.history({ verbose: true }));
+        setLastMove({ from: aiMove.from, to: aiMove.to });
+      }
+      setIsAIThinking(false);
+    }, 300);
+  }, [game, gameMode, difficulty, isAIThinking]);
+
+  useEffect(() => {
+    makeAIMove();
+  }, [board, makeAIMove]);
+
   const sideToMove = game.turn() === "w" ? "White" : "Black";
 
   const status = useMemo(() => {
+    if (isAIThinking) return "AI is thinking...";
     if (game.isCheckmate()) {
       return `Checkmate — ${game.turn() === "w" ? "Black" : "White"} wins!`;
     }
@@ -134,7 +175,7 @@ export const useChessGame = () => {
     if (game.isInsufficientMaterial()) return "Draw by insufficient material";
     if (game.inCheck()) return `${sideToMove} in check`;
     return `${sideToMove} to move`;
-  }, [board, sideToMove, game]);
+  }, [board, sideToMove, game, isAIThinking]);
 
   return {
     game,
@@ -153,5 +194,7 @@ export const useChessGame = () => {
     handlePromotion,
     exportPGN,
     importFEN,
+    isAIThinking,
+    lastMove,
   };
 };

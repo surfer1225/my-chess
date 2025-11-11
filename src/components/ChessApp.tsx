@@ -4,8 +4,21 @@ import { ChessBoard } from "./chess/ChessBoard";
 import { GameStatus } from "./chess/GameStatus";
 import { MoveHistory } from "./chess/MoveHistory";
 import { PromotionDialog } from "./chess/PromotionDialog";
+import { GameModeSelector } from "./chess/GameModeSelector";
+import type { GameMode, DifficultyLevel } from "../types/chess.types";
 
 export default function ChessApp() {
+  const [gameMode, setGameMode] = React.useState<GameMode>("human-vs-human");
+  const [difficulty, setDifficulty] = React.useState<DifficultyLevel>("medium");
+
+  const handleGameModeChange = (mode: GameMode) => {
+    setGameMode(mode);
+  };
+
+  const handleDifficultyChange = (diff: DifficultyLevel) => {
+    setDifficulty(diff);
+  };
+
   const {
     game,
     board,
@@ -21,7 +34,8 @@ export default function ChessApp() {
     undo,
     setFlip,
     handlePromotion,
-  } = useChessGame();
+    lastMove,
+  } = useChessGame({ gameMode, difficulty });
 
   // Calculate responsive square size - maximize board size
   const calculateSquareSize = () => {
@@ -100,18 +114,34 @@ export default function ChessApp() {
             squareName={squareName}
             onSquareClick={onSquareClick}
             squareSize={squareSize}
+            lastMove={lastMove}
           />
         </div>
 
-        {/* Right Side - Move History */}
-        <MoveHistory
-          history={history}
-          squareSize={squareSize}
-          onFlip={() => setFlip((f) => !f)}
-          onUndo={undo}
-          onReset={reset}
-          canUndo={history.length > 0}
-        />
+        {/* Right Side - Game Mode & Move History */}
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: isMobile ? '8px' : '12px',
+          maxHeight: isMobile ? 'auto' : `${squareSize * 8 + 80}px`,
+        }}>
+          <GameModeSelector
+            gameMode={gameMode}
+            difficulty={difficulty}
+            onGameModeChange={handleGameModeChange}
+            onDifficultyChange={handleDifficultyChange}
+            squareSize={squareSize}
+          />
+          <MoveHistory
+            history={history}
+            squareSize={squareSize}
+            onFlip={() => setFlip((f) => !f)}
+            onUndo={undo}
+            onReset={reset}
+            canUndo={history.length > 0}
+            gameMode={gameMode}
+          />
+        </div>
       </div>
 
       {promotionDialog && (

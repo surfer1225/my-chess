@@ -10,6 +10,7 @@ interface ChessBoardProps {
   squareName: (rankIdx: number, fileIdx: number) => SquareType;
   onSquareClick: (rankIdx: number, fileIdx: number) => void;
   squareSize: number;
+  lastMove: { from: SquareType; to: SquareType } | null;
 }
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -23,6 +24,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   squareName,
   onSquareClick,
   squareSize,
+  lastMove,
 }) => {
   const displayFiles = flip ? [...files].reverse() : files;
   const displayRanks = flip ? [...ranks].reverse() : ranks;
@@ -83,6 +85,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
                 const isDark = (rIdx + fIdx) % 2 === 1;
                 const isSelected = selectedSquare === sq;
                 const isLegal = legalMoves.includes(sq);
+                const isLastMoveSquare = !!(lastMove && (lastMove.from === sq || lastMove.to === sq));
 
                 return (
                   <Square
@@ -94,6 +97,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
                     isLegal={isLegal}
                     onClick={() => onSquareClick(rIdx, fIdx)}
                     squareSize={squareSize}
+                    isLastMoveSquare={isLastMoveSquare}
                   />
                 );
               })

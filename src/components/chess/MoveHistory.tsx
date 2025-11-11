@@ -1,6 +1,8 @@
 import React from "react";
 import type { Move } from "../../types/chess.types";
 
+import type { GameMode } from "../../types/chess.types";
+
 interface MoveHistoryProps {
   history: Move[];
   squareSize: number;
@@ -8,6 +10,7 @@ interface MoveHistoryProps {
   onUndo: () => void;
   onReset: () => void;
   canUndo: boolean;
+  gameMode: GameMode;
 }
 
 export const MoveHistory: React.FC<MoveHistoryProps> = ({
@@ -17,6 +20,7 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
   onUndo,
   onReset,
   canUndo,
+  gameMode,
 }) => {
   const movePairs = history.reduce((acc: Move[][], move, i) => {
     if (i % 2 === 0) {
@@ -29,7 +33,13 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
 
   // Responsive sizing based on square size
   const panelWidth = Math.max(300, squareSize * 4);
-  const historyHeight = Math.max(400, squareSize * 7.1);
+  
+  // Adjust height based on game mode (difficulty shown = less space for moves)
+  const baseMoveHistoryHeight = gameMode === "human-vs-bot" 
+    ? Math.max(320, squareSize * 5.5) 
+    : Math.max(400, squareSize * 6.8);
+  
+  const historyHeight = baseMoveHistoryHeight;
 
   return (
     <div

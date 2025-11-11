@@ -6,9 +6,24 @@ interface GameStatusProps {
 
 export const GameStatus: React.FC<GameStatusProps> = ({ status }) => {
   return (
-    <div style={{ marginBottom: '8px', textAlign: 'center' }}>
-      <div className="inline-block bg-slate-600/50 px-4 py-2 rounded-lg">
-        <div className="text-white font-semibold text-sm">{status}</div>
+    <div style={{ marginBottom: '12px', textAlign: 'center' }}>
+      <div style={{
+        display: 'inline-block',
+        backgroundColor: 'rgba(15, 23, 42, 0.7)',
+        padding: '12px 24px',
+        borderRadius: '10px',
+        border: '2px solid rgba(71, 85, 105, 0.5)',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(8px)'
+      }}>
+        <div style={{
+          color: '#ffffff',
+          fontWeight: '700',
+          fontSize: '16px',
+          letterSpacing: '0.5px'
+        }}>
+          {status}
+        </div>
       </div>
     </div>
   );

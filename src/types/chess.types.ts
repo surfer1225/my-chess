@@ -14,4 +14,8 @@ export interface PromotionDialogState {
 
 export type PromotionPiece = "q" | "r" | "b" | "n";
 
+export type GameMode = "human-vs-human" | "human-vs-bot";
+
+export type DifficultyLevel = "easy" | "medium" | "hard";
+
 export type { Square, Move, PieceSymbol, Color };

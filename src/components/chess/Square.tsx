@@ -10,6 +10,7 @@ interface SquareProps {
   isLegal: boolean;
   onClick: () => void;
   squareSize: number;
+  isLastMoveSquare: boolean;
 }
 
 export const Square: React.FC<SquareProps> = ({
@@ -20,8 +21,16 @@ export const Square: React.FC<SquareProps> = ({
   isLegal,
   onClick,
   squareSize,
+  isLastMoveSquare,
 }) => {
   const pieceImage = getPieceImage(piece);
+
+  const getBackgroundColor = () => {
+    if (isLastMoveSquare) {
+      return isDark ? '#baca44' : '#cdd26a';
+    }
+    return isDark ? '#b58863' : '#f0d9b5';
+  };
 
   return (
     <button
@@ -29,7 +38,7 @@ export const Square: React.FC<SquareProps> = ({
       style={{
         width: `${squareSize}px`,
         height: `${squareSize}px`,
-        backgroundColor: isDark ? '#b58863' : '#f0d9b5',
+        backgroundColor: getBackgroundColor(),
         border: 'none',
         cursor: 'pointer',
         display: 'flex',
@@ -38,6 +47,7 @@ export const Square: React.FC<SquareProps> = ({
         position: 'relative',
         boxShadow: isSelected ? `inset 0 0 0 ${Math.max(3, squareSize * 0.04)}px #fbbf24` : 'none',
         padding: `${squareSize * 0.07}px`,
+        transition: 'background-color 0.2s ease-in-out',
       }}
       aria-label={square}
     >
@@ -50,6 +60,7 @@ export const Square: React.FC<SquareProps> = ({
             height: '100%',
             pointerEvents: 'none',
             userSelect: 'none',
+            animation: isLastMoveSquare && piece ? 'pieceMove 0.3s ease-out' : 'none',
           }}
         />
       )}
