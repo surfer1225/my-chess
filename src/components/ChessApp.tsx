@@ -81,7 +81,7 @@ export default function ChessApp() {
     >
       {/* Main Game Area */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
-        <GameStatus status={status} currentPlayer={game.turn()} />
+        <GameStatus status={status} />
         <ChessBoard
           board={board}
           squareSize={squareSize}
@@ -195,8 +195,8 @@ export default function ChessApp() {
 
       {promotionDialog && (
         <PromotionDialog
-          onSelect={handlePromotion}
-          color={game.turn()}
+          game={game}
+          onPromote={handlePromotion}
         />
       )}
     </div>
