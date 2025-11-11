@@ -98,7 +98,7 @@ export const useChessGame = ({ gameMode, difficulty }: UseChessGameProps) => {
     setHistory(newHistory);
     setSelectedSquare(null);
     setLegalMoves([]);
-    
+
     if (newHistory.length > 0) {
       const lastHistoryMove = newHistory[newHistory.length - 1];
       setLastMove({ from: lastHistoryMove.from, to: lastHistoryMove.to });
@@ -145,7 +145,7 @@ export const useChessGame = ({ gameMode, difficulty }: UseChessGameProps) => {
     if (game.turn() !== "b") return;
 
     setIsAIThinking(true);
-    
+
     setTimeout(() => {
       const aiMove = getAIMove(game, difficulty);
       if (aiMove) {

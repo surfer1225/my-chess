@@ -119,9 +119,9 @@ export default function ChessApp() {
         </div>
 
         {/* Right Side - Game Mode & Move History */}
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
           gap: isMobile ? '8px' : '12px',
           maxHeight: isMobile ? 'auto' : `${squareSize * 8 + 80}px`,
         }}>

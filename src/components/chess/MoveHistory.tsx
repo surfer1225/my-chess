@@ -33,12 +33,12 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
 
   // Responsive sizing based on square size
   const panelWidth = Math.max(300, squareSize * 4);
-  
+
   // Adjust height based on game mode (difficulty shown = less space for moves)
-  const baseMoveHistoryHeight = gameMode === "human-vs-bot" 
-    ? Math.max(320, squareSize * 5.5) 
+  const baseMoveHistoryHeight = gameMode === "human-vs-bot"
+    ? Math.max(320, squareSize * 5.5)
     : Math.max(400, squareSize * 6.8);
-  
+
   const historyHeight = baseMoveHistoryHeight;
 
   return (
