@@ -1,7 +1,7 @@
 import React from "react";
 import type { Move } from "../../types/chess.types";
-
 import type { GameMode } from "../../types/chess.types";
+import { detectOpening } from "../../utils/openingDetector";
 
 interface MoveHistoryProps {
   history: Move[];
@@ -31,6 +31,9 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
     return acc;
   }, []);
 
+  // Detect the current opening
+  const openingName = detectOpening(history);
+
   // Responsive sizing based on square size
   const panelWidth = Math.max(300, squareSize * 4);
 
@@ -57,7 +60,20 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({
     >
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-600/50" style={{ marginBottom: '12px' }}>
-        <h2 style={{ fontWeight: 'bold', color: '#ffffff', fontSize: squareSize < 70 ? '16px' : '18px' }}>Moves</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <h2 style={{ fontWeight: 'bold', color: '#ffffff', fontSize: squareSize < 70 ? '16px' : '18px' }}>
+            Moves
+          </h2>
+          {history.length > 0 && (
+            <span style={{
+              fontSize: squareSize < 70 ? '11px' : '12px',
+              color: '#94a3b8',
+              fontStyle: 'italic'
+            }}>
+              {openingName}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Moves Table */}

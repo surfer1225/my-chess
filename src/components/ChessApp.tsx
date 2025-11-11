@@ -1,11 +1,12 @@
 import React from "react";
-import { useChessGame } from "../hooks/useChessGame";
 import { ChessBoard } from "./chess/ChessBoard";
 import { GameStatus } from "./chess/GameStatus";
 import { MoveHistory } from "./chess/MoveHistory";
-import { PromotionDialog } from "./chess/PromotionDialog";
-import { GameModeSelector } from "./chess/GameModeSelector";
+import { useChessGame } from "../hooks/useChessGame";
+import { useResponsiveSquareSize } from "../hooks/useResponsiveSquareSize";
 import type { GameMode, DifficultyLevel } from "../types/chess.types";
+import { GameModeSelector } from "./chess/GameModeSelector";
+import { PromotionDialog } from "./chess/PromotionDialog";
 
 export default function ChessApp() {
   const [gameMode, setGameMode] = React.useState<GameMode>("human-vs-bot");
@@ -37,39 +38,8 @@ export default function ChessApp() {
     lastMove,
   } = useChessGame({ gameMode, difficulty });
 
-  // Calculate responsive square size - maximize board size
-  const calculateSquareSize = () => {
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    // Base calculation on viewport - maximize space usage
-    if (viewportWidth < 768) {
-      // Mobile: use most of width
-      return Math.min(Math.floor((viewportWidth - 60) / 8), Math.floor((viewportHeight - 250) / 8));
-    } else {
-      // Desktop: calculate based on available space
-      // Reserve space for move history (~400px) and margins (~100px)
-      const availableWidth = viewportWidth - 500;
-      const availableHeight = viewportHeight - 180;
-
-      const maxSquareFromWidth = Math.floor(availableWidth / 8);
-      const maxSquareFromHeight = Math.floor(availableHeight / 8);
-      return Math.min(maxSquareFromWidth, maxSquareFromHeight, 110);
-    }
-  };
-
-  const [squareSize, setSquareSize] = React.useState(calculateSquareSize());
-
-  React.useEffect(() => {
-    const handleResize = () => {
-      setSquareSize(calculateSquareSize());
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const isMobile = squareSize < 70;
+  // Use custom hook for responsive sizing
+  const { squareSize, isMobile } = useResponsiveSquareSize();
 
   return (
     <div

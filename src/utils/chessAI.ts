@@ -9,6 +9,32 @@ interface EvaluatedMove {
   score: number;
 }
 
+/**
+ * Transposition Table Entry
+ * Stores previously evaluated positions to avoid recalculation
+ */
+interface TTEntry {
+  score: number;      // Evaluation score
+  depth: number;      // Depth at which this position was searched
+  flag: 'exact' | 'alpha' | 'beta';  // Type of score
+  bestMove?: Move;    // Best move found (for move ordering)
+}
+
+/**
+ * Global Transposition Table
+ * Maps FEN positions to their evaluations
+ * Cleared at the start of each AI move calculation
+ */
+const transpositionTable = new Map<string, TTEntry>();
+
+/**
+ * Clear the transposition table
+ * Should be called at the start of each new search
+ */
+function clearTT(): void {
+  transpositionTable.clear();
+}
+
 const PIECE_VALUES: { [key: string]: number } = {
   p: 100,
   n: 320,
@@ -235,9 +261,11 @@ function quiescence(
 }
 
 /**
- * Negamax algorithm with alpha-beta pruning
+ * Negamax algorithm with alpha-beta pruning and transposition table
  * Simpler and more correct than separate max/min logic
  * Always evaluates from the perspective of the player to move
+ *
+ * Transposition table provides massive speedup by caching positions
  */
 function negamax(
   game: Chess,
@@ -245,6 +273,25 @@ function negamax(
   alpha: number,
   beta: number
 ): number {
+  const originalAlpha = alpha;
+
+  // Probe transposition table
+  const fen = game.fen();
+  const ttEntry = transpositionTable.get(fen);
+
+  if (ttEntry && ttEntry.depth >= depth) {
+    // We've seen this position before at equal or greater depth
+    if (ttEntry.flag === 'exact') {
+      return ttEntry.score;
+    }
+    if (ttEntry.flag === 'alpha' && ttEntry.score <= alpha) {
+      return alpha;
+    }
+    if (ttEntry.flag === 'beta' && ttEntry.score >= beta) {
+      return beta;
+    }
+  }
+
   // At depth 0 or game over, evaluate position
   if (depth === 0 || game.isGameOver()) {
     if (game.isGameOver()) {
@@ -257,26 +304,56 @@ function negamax(
       return 0;
     }
     // Use quiescence search to avoid horizon effect
-    return quiescence(game, alpha, beta);
+    const qScore = quiescence(game, alpha, beta);
+
+    // Store in transposition table
+    transpositionTable.set(fen, {
+      score: qScore,
+      depth: 0,
+      flag: 'exact'
+    });
+
+    return qScore;
   }
 
   // Order moves for better alpha-beta pruning
   const moves = orderMoves(game, game.moves({ verbose: true }));
 
   let maxScore = -Infinity;
+  let bestMove: Move | undefined;
 
   for (const move of moves) {
     game.move(move);
     const score = -negamax(game, depth - 1, -beta, -alpha);
     game.undo();
 
-    maxScore = Math.max(maxScore, score);
+    if (score > maxScore) {
+      maxScore = score;
+      bestMove = move;
+    }
+
     alpha = Math.max(alpha, score);
 
     if (alpha >= beta) {
-      break; // Beta cutoff
+      // Beta cutoff - store in transposition table
+      transpositionTable.set(fen, {
+        score: beta,
+        depth,
+        flag: 'beta',
+        bestMove
+      });
+      return beta;
     }
   }
+
+  // Store result in transposition table
+  const flag = maxScore <= originalAlpha ? 'alpha' : 'exact';
+  transpositionTable.set(fen, {
+    score: maxScore,
+    depth,
+    flag,
+    bestMove
+  });
 
   return maxScore;
 }
@@ -285,6 +362,10 @@ function getBestMove(game: Chess, depth: number): Move | null {
   const moves = game.moves({ verbose: true });
   if (moves.length === 0) return null;
 
+  // Clear transposition table for new search
+  clearTT();
+
+  const startTime = performance.now();
   const evaluatedMoves: EvaluatedMove[] = [];
 
   for (const move of moves) {
@@ -297,7 +378,16 @@ function getBestMove(game: Chess, depth: number): Move | null {
 
   evaluatedMoves.sort((a, b) => b.score - a.score);
 
-  return evaluatedMoves[0].move;
+  const elapsedTime = (performance.now() - startTime).toFixed(0);
+  const bestMove = evaluatedMoves[0];
+
+  console.log(`🤖 AI Move: ${bestMove.move.san} (score: ${bestMove.score})`);
+  console.log(`⏱️  Time: ${elapsedTime}ms | Depth: ${depth}`);
+  console.log(`💾 Transposition Table: ${transpositionTable.size.toLocaleString()} positions cached`);
+  console.log(`📊 Cache efficiency: ${(transpositionTable.size / (transpositionTable.size + moves.length) * 100).toFixed(1)}%`);
+  console.log('---');
+
+  return bestMove.move;
 }
 
 /**

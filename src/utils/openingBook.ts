@@ -1,12 +1,17 @@
 /**
  * COMPREHENSIVE Chess Opening Book (Expanded Edition)
  *
+ * PURPOSE: AI move selection from known opening positions
+ *
  * This file contains an extensive collection of opening positions mapped to good moves.
  * The opening book provides instant, strong moves for the first 8-12 moves of the game.
  *
  * Format: FEN position string -> Array of good moves in algebraic notation (e.g., "e2e4")
  *
  * Coverage: 200+ positions across all major openings
+ *
+ * NOTE: For displaying opening names to users, see openingDetector.ts
+ * These files serve different purposes and use different data structures
  *
  * Openings covered in depth:
  *

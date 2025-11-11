@@ -19,10 +19,18 @@ export const useChessGame = ({ gameMode, difficulty }: UseChessGameProps) => {
   const [isAIThinking, setIsAIThinking] = useState<boolean>(false);
   const [lastMove, setLastMove] = useState<{ from: Square; to: Square } | null>(null);
 
-  useEffect(() => {
+  /**
+   * Update game state from current game instance
+   * Centralized helper to avoid duplication
+   */
+  const updateGameState = useCallback(() => {
     setBoard(game.board());
     setHistory(game.history({ verbose: true }));
   }, [game]);
+
+  useEffect(() => {
+    updateGameState();
+  }, [updateGameState]);
 
   const squareName = (rankIdx: number, fileIdx: number): Square => {
     const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -60,8 +68,7 @@ export const useChessGame = ({ gameMode, difficulty }: UseChessGameProps) => {
 
         try {
           game.move({ from: selectedSquare, to: sq });
-          setBoard(game.board());
-          setHistory(game.history({ verbose: true }));
+          updateGameState();
           setLastMove({ from: selectedSquare, to: sq });
           setSelectedSquare(null);
           setLegalMoves([]);
@@ -84,8 +91,7 @@ export const useChessGame = ({ gameMode, difficulty }: UseChessGameProps) => {
 
   const reset = (): void => {
     game.reset();
-    setBoard(game.board());
-    setHistory([]);
+    updateGameState();
     setSelectedSquare(null);
     setLegalMoves([]);
     setLastMove(null);
@@ -93,12 +99,11 @@ export const useChessGame = ({ gameMode, difficulty }: UseChessGameProps) => {
 
   const undo = (): void => {
     game.undo();
-    setBoard(game.board());
-    const newHistory = game.history({ verbose: true });
-    setHistory(newHistory);
+    updateGameState();
     setSelectedSquare(null);
     setLegalMoves([]);
 
+    const newHistory = game.history({ verbose: true });
     if (newHistory.length > 0) {
       const lastHistoryMove = newHistory[newHistory.length - 1];
       setLastMove({ from: lastHistoryMove.from, to: lastHistoryMove.to });
@@ -112,8 +117,7 @@ export const useChessGame = ({ gameMode, difficulty }: UseChessGameProps) => {
 
     try {
       game.move({ from: promotionDialog.from, to: promotionDialog.to, promotion: piece });
-      setBoard(game.board());
-      setHistory(game.history({ verbose: true }));
+      updateGameState();
       setSelectedSquare(null);
       setLegalMoves([]);
       setPromotionDialog(null);
